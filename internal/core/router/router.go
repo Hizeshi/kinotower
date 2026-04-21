@@ -5,14 +5,17 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/nedpals/supabase-go"
 )
 
 type Router struct {
-
+	supabaseClient *supabase.Client
 }
 
-func NewRouter() *Router {
-	return &Router{}
+func NewRouter(supabaseClient *supabase.Client) *Router {
+	return &Router{
+		supabaseClient: supabaseClient,
+	}
 }
 
 func (r *Router) RegisterRoutes() http.Handler {
@@ -27,6 +30,8 @@ func (r *Router) RegisterRoutes() http.Handler {
 		})
 		rl.Mount("/films", r.filmRoutes())
 		rl.Mount("/genders", r.genderRoutes())
+		rl.Mount("/countries", r.countryRoutes())
+		rl.Mount("/categories", r.categoryRoutes())
 	})
 	return router
 }

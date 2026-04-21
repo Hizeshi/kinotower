@@ -1,15 +1,21 @@
 package core_router
 
 import (
-	"net/http"
-
 	"github.com/go-chi/chi/v5"
+
+	"github.com/Hizeshi/kinotower/internal/features/genders/handler"
+	"github.com/Hizeshi/kinotower/internal/features/genders/repository"
+	"github.com/Hizeshi/kinotower/internal/features/genders/servise"
 )
 
-func (r *Router) genderRoutes() http.Handler {
-	router := chi.NewRouter()
-	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("genders"))
-	})
-	return router
+func (r *Router) genderRoutes() chi.Router {
+	routes := chi.NewRouter()
+
+	repo := repository.NewGenderRepository(r.supabaseClient)
+	svc := servise.NewGenderService(repo)
+	hndl := handler.NewGenderHandler(svc)
+
+	routes.Get("/", hndl.GetAll)
+
+	return routes
 }
