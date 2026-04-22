@@ -44,3 +44,18 @@ func (s *FilmService) GetFilms(ctx context.Context, filter domain.FilmFilter) (d
 
 	return response, nil
 }
+
+func (s *FilmService) GetFilmByID(ctx context.Context, id int) (domain.Film, error) {
+	return s.repo.GetFilmByID(ctx, id)
+}
+
+func (s *FilmService) GetFilmReviews(ctx context.Context, filmID int) ([]domain.FilmReview, error) {
+	
+	_, err := s.GetFilmByID(ctx, filmID)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.repo.GetReviewsByFilmID(ctx, filmID)
+	
+}

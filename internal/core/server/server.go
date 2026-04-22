@@ -17,7 +17,7 @@ func NewServer(supabaseClient *supabase.Client) *Server {
 	
     return &Server{
 		Server: http.Server{
-			Addr:":3000",
+			Addr:":8000",
 			Handler: router.RegisterRoutes(),
 		},
 	}

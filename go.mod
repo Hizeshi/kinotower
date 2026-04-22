@@ -9,6 +9,8 @@ require (
 )
 
 require (
-	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
-	github.com/google/go-querystring v1.1.0 // indirect
+	github.com/go-viper/mapstructure/v2 v2.5.0 // indirect
+	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
+	github.com/google/go-querystring v1.2.0 // indirect
+	golang.org/x/crypto v0.50.0 // indirect
 )

@@ -1,5 +1,15 @@
 package domain
 
+type FilmCountry struct {
+	ID int `json:"id"`
+	Name string `json:"name"`
+}
+
+type FilmCategory struct {
+    ID int `json:"id"`
+	Name string `json:"name"`
+}
+
 type FilmFilter struct {
 	Page int
 	Size int
@@ -20,8 +30,12 @@ type Film struct {
 	 LinkKinopoisk string `json:"link_kinopoisk"`
 	 LinkVideo string `json:"link_video"`
 	 CreatedAt string `json:"created_at"`
-	 RatingAvg float64 `json:"rating_avg"`
-	 ReviewCount int `json:"review_count"`
+
+	 Country FilmCountry `json:"country"`
+	 Categories []FilmCategory `json:"categories"`
+
+	 RatingAvg float64 `json:"ratingAvg"`
+	 ReviewCount int `json:"reviewCount"`
 }
 
 type FilmResponse struct {

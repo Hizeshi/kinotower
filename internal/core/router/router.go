@@ -29,9 +29,11 @@ func (r *Router) RegisterRoutes() http.Handler {
 			w.Write([]byte("pong"))
 		})
 		rl.Mount("/films", r.filmRoutes())
+		rl.Mount("/auth", r.authRoutes())
 		rl.Mount("/genders", r.genderRoutes())
 		rl.Mount("/countries", r.countryRoutes())
 		rl.Mount("/categories", r.categoryRoutes())
+		rl.Mount("/users", r.userRoutes())
 	})
 	return router
 }

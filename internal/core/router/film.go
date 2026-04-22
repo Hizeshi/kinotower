@@ -4,13 +4,22 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+
+	"github.com/Hizeshi/kinotower/internal/features/films/handler"
+	"github.com/Hizeshi/kinotower/internal/features/films/repository"
+	"github.com/Hizeshi/kinotower/internal/features/films/servise"
 )
 
 func (r *Router) filmRoutes() http.Handler {
 	router := chi.NewRouter()
-	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("films"))
-	})
-	
+
+	repo := repository.NewFilmRepository(r.supabaseClient)
+	svc := servise.NewFilmService(repo)
+	hndl := handler.NewFilmHandler(svc)
+
+	router.Get("/", hndl.GetAll)
+	router.Get("/{id}", hndl.GetByID)
+	router.Get("/{id}/reviews", hndl.GetReviews)
+
 	return router
 }
