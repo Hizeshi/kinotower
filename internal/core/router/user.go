@@ -11,6 +11,10 @@ import (
 	reviewHandler "github.com/Hizeshi/kinotower/internal/features/reviews/handler"
 	reviewRepo "github.com/Hizeshi/kinotower/internal/features/reviews/repository"
 	reviewService "github.com/Hizeshi/kinotower/internal/features/reviews/servise"
+
+	ratingHandler "github.com/Hizeshi/kinotower/internal/features/ratings/handler"
+	ratingRepo "github.com/Hizeshi/kinotower/internal/features/ratings/repository"
+	ratingService "github.com/Hizeshi/kinotower/internal/features/ratings/servise"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -32,11 +36,23 @@ func (r *Router) userRoutes() http.Handler {
 	revHndl := reviewHandler.NewReviewHandler(revSvc)
 
 	router.Route("/{user-id}/reviews", func(router chi.Router) {
-		router.Use(middleware.RequareAuth) // 
+		router.Use(middleware.RequareAuth) 
 		
-		router.Post("/", revHndl.Create)     // POST /api/v1/users/{user-id}/reviews
-		router.Get("/", revHndl.GetUserReviews) // GET /api/v1/users/{user-id}/reviews 
-		router.Delete("/{id}", revHndl.Delete)  // DELETE /api/v1/users/{user-id}/reviews/{id} 
+		router.Post("/", revHndl.Create)     
+		router.Get("/", revHndl.GetUserReviews) 
+		router.Delete("/{id}", revHndl.Delete) 
+	})
+
+	rateRepo := ratingRepo.NewRatingRepository(r.supabaseClient)
+	rateSvc := ratingService.NewRatingService(rateRepo)
+	rateHndl := ratingHandler.NewRatingHandler(rateSvc)
+
+	router.Route("/{user-id}/ratings", func(router chi.Router) {
+		router.Use(middleware.RequareAuth)
+		
+		router.Post("/", rateHndl.Create)
+		router.Get("/", rateHndl.Get)
+		router.Delete("/{id}", rateHndl.Delete)
 	})
 
 	return router
