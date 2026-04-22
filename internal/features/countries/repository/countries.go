@@ -19,9 +19,13 @@ func NewCountryRepository(db *supabase.Client) *CountryRepository {
 func (r *CountryRepository) GetAll(ctx context.Context) ([]domain.Country, error) {
 	var countries []domain.Country
 
-	err := r.db.DB.From("countries").Select("*").Execute(&countries)
+	err := r.db.DB.From("countries_view").Select("*").Execute(&countries)
 	if err != nil {
 		return nil, err
+	}
+
+	if countries == nil {
+		countries = []domain.Country{}
 	}
 
 	return countries, nil

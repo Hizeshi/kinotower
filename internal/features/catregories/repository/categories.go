@@ -18,9 +18,13 @@ func NewCategoryRepository(db *supabase.Client) *CategoryRepository {
 func (r *CategoryRepository) GetAll(ctx context.Context) ([]domain.Category, error) {
 	var categories []domain.Category
 
-	err := r.db.DB.From("categories").Select("*").Execute(&categories)
+	err := r.db.DB.From("categories_view").Select("*").Execute(&categories)
 	if err != nil {
 		return nil, err
+	}
+
+	if categories == nil {
+		categories = []domain.Category{}
 	}
 
 	return categories, nil
