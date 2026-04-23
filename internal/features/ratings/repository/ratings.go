@@ -18,7 +18,7 @@ func NewRatingRepository(db *supabase.Client) *RatingRepository {
 }
 
 func (r *RatingRepository) CheckExist(ctx context.Context, userID, filmID int) (bool, error) {
-	var results []interface{}
+	var results []map[string]interface{}
 	err := r.db.DB.From("ratings").Select("id").
 		Eq("user_id", fmt.Sprintf("%d", userID)).
 		Eq("film_id", fmt.Sprintf("%d", filmID)).

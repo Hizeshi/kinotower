@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -25,6 +26,12 @@ func (h *UserHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 	userID, err := strconv.Atoi(idStr)
 	if err != nil {
 		http.Error(w, "Invalid user ID", http.StatusBadRequest)
+		return
+	}
+
+	tokenUserID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok || tokenUserID != userID {
+		http.Error(w, fmt.Sprintf("Forbidden: you can only access your own data. (tokenUserID=%d, urlUserID=%d, ok=%v)", tokenUserID, userID, ok), http.StatusForbidden)
 		return
 	}
 

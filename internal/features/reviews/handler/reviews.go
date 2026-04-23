@@ -2,10 +2,12 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/Hizeshi/kinotower/internal/core/domain"
+	"github.com/Hizeshi/kinotower/internal/core/middleware"
 	"github.com/Hizeshi/kinotower/internal/features/reviews/servise"
 	"github.com/go-chi/chi/v5"
 )
@@ -20,6 +22,12 @@ func NewReviewHandler(service *servise.ReviewService) *ReviewHandler {
 
 func (h *ReviewHandler) Create(w http.ResponseWriter, r *http.Request) {
 	userID, _ := strconv.Atoi(chi.URLParam(r, "user-id"))
+
+	tokenUserID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok || tokenUserID != userID {
+		http.Error(w, fmt.Sprintf("Forbidden: you can only access your own data. (tokenUserID=%d, urlUserID=%d, ok=%v)", tokenUserID, userID, ok), http.StatusForbidden)
+		return
+	}
 
 	var req domain.CreateReviewRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -41,6 +49,12 @@ func (h *ReviewHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *ReviewHandler) GetUserReviews(w http.ResponseWriter, r *http.Request) {
 	userID, _ := strconv.Atoi(chi.URLParam(r, "user-id"))
 
+	tokenUserID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok || tokenUserID != userID {
+		http.Error(w, fmt.Sprintf("Forbidden: you can only access your own data. (tokenUserID=%d, urlUserID=%d, ok=%v)", tokenUserID, userID, ok), http.StatusForbidden)
+		return
+	}
+
 	reviews, err := h.service.GetUserReviews(r.Context(), userID)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
@@ -59,6 +73,12 @@ func (h *ReviewHandler) GetUserReviews(w http.ResponseWriter, r *http.Request) {
 func (h *ReviewHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	userID, _ := strconv.Atoi(chi.URLParam(r, "user-id"))
 	reviewID, _ := strconv.Atoi(chi.URLParam(r, "id"))
+
+	tokenUserID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok || tokenUserID != userID {
+		http.Error(w, fmt.Sprintf("Forbidden: you can only access your own data. (tokenUserID=%d, urlUserID=%d, ok=%v)", tokenUserID, userID, ok), http.StatusForbidden)
+		return
+	}
 
 	err := h.service.DeleteReview(r.Context(), userID, reviewID)
 	if err != nil {

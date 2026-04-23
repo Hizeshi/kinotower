@@ -2,8 +2,11 @@ package repository
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/Hizeshi/kinotower/internal/core/domain"
 	"github.com/nedpals/supabase-go"
@@ -47,4 +50,31 @@ func (r *AuthRepository) CreateUser(ctx context.Context, user domain.User) (doma
 	}
 
 	return results[0], nil
+}
+
+func hashToken(token string) string {
+	hash := sha256.Sum256([]byte(token))
+	return hex.EncodeToString(hash[:])
+}
+
+func (r *AuthRepository) AddToBlacklist(ctx context.Context, token string, expiresAt time.Time) error {
+	data := map[string]interface{}{
+		"token":      hashToken(token),
+		"expires_at": expiresAt.Format(time.RFC3339),
+	}
+	var results []map[string]interface{}
+	err := r.db.DB.From("blacklisted_tokens").Insert(data).Execute(&results)
+	if err != nil {
+		return fmt.Errorf("failed to insert token: %w", err)
+	}
+	return nil
+}
+
+func (r *AuthRepository) IsBlacklisted(ctx context.Context, token string) (bool, error) {
+	var results []map[string]interface{}
+	err := r.db.DB.From("blacklisted_tokens").Select("id").Eq("token", hashToken(token)).Execute(&results)
+	if err != nil {
+		return false, err
+	}
+	return len(results) > 0, nil
 }

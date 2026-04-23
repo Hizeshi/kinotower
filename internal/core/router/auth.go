@@ -16,12 +16,13 @@ func (r *Router) authRoutes() http.Handler {
 	repo := repository.NewAuthRepository(r.supabaseClient)
 	svc := servise.NewAuthServise(repo)
 	hndl := handler.NewAuthHandler(svc)
+	authMW := middleware.NewAuthMiddleware(repo)
 
 	router.Post("/signup", hndl.SignUp)
 	router.Post("/signin", hndl.SignIn)
 
 	router.Group(func(rl chi.Router) {
-		rl.Use(middleware.RequareAuth)
+		rl.Use(authMW.RequireAuth)
 		rl.Post("/signout", hndl.SignOut)
 	})
 

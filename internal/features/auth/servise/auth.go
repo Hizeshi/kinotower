@@ -3,8 +3,8 @@ package servise
 import (
 	"context"
 	"errors"
-	"time"
 	"log/slog"
+	"time"
 
 	"github.com/Hizeshi/kinotower/internal/core/domain"
 	"github.com/Hizeshi/kinotower/internal/features/auth/repository"
@@ -19,18 +19,22 @@ type AuthServise struct {
 	repo *repository.AuthRepository
 }
 
+func (s *AuthServise) RevokeToken(ctx context.Context, token string, expiresAt time.Time) error {
+    return s.repo.AddToBlacklist(ctx, token, expiresAt)
+}
+
 func NewAuthServise(repo *repository.AuthRepository) *AuthServise {
 	return &AuthServise{repo: repo}
 }
 
 func generateToken(userID int) (string, error) {
-    token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"userID": userID,
-		"exp": time.Now().Add(time.Hour * 72).Unix(),
-	})	
+		"exp":    time.Now().Add(time.Hour * 72).Unix(),
+	})
 
 	return token.SignedString(jwtSecretKey)
-}	
+}
 
 func (s *AuthServise) SignUp(ctx context.Context, req domain.SignUpRequest) (domain.AuthResponse, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
@@ -39,8 +43,8 @@ func (s *AuthServise) SignUp(ctx context.Context, req domain.SignUpRequest) (dom
 	}
 
 	newUser := domain.User{
-		Fio: req.Fio,
-		Email: req.Email,
+		Fio:      req.Fio,
+		Email:    req.Email,
 		Password: string(hashedPassword),
 		Birthday: req.Birthday,
 		GenderID: req.GenderID,
@@ -60,9 +64,9 @@ func (s *AuthServise) SignUp(ctx context.Context, req domain.SignUpRequest) (dom
 
 	return domain.AuthResponse{
 		Status: "success",
-		Token: token,
-		ID: createdUser.ID,
-		Fio: createdUser.Fio,
+		Token:  token,
+		ID:     createdUser.ID,
+		Fio:    createdUser.Fio,
 	}, nil
 }
 
@@ -92,3 +96,5 @@ func (s *AuthServise) SignIn(ctx context.Context, req domain.SignInRequest) (dom
 		Fio:    user.Fio,
 	}, nil
 }
+
+

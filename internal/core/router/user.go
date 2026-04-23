@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/Hizeshi/kinotower/internal/core/middleware"
+	authRepo "github.com/Hizeshi/kinotower/internal/features/auth/repository"
 	userHandler "github.com/Hizeshi/kinotower/internal/features/users/handler"
 	userRepo "github.com/Hizeshi/kinotower/internal/features/users/repository"
 	userService "github.com/Hizeshi/kinotower/internal/features/users/servise"
@@ -21,11 +22,14 @@ import (
 func (r *Router) userRoutes() http.Handler {
 	router := chi.NewRouter()
 
+	aRepo := authRepo.NewAuthRepository(r.supabaseClient)
+	authMW := middleware.NewAuthMiddleware(aRepo)
+
 	repo := userRepo.NewUserRepository(r.supabaseClient)
 	svc := userService.NewUserService(repo)
 	hndl := userHandler.NewUserHandler(svc)
 
-	router.Use(middleware.RequareAuth)
+	router.Use(authMW.RequireAuth)
 
 	router.Get("/{id}", hndl.GetProfile)
 	router.Put("/{id}", hndl.Update)
@@ -36,7 +40,7 @@ func (r *Router) userRoutes() http.Handler {
 	revHndl := reviewHandler.NewReviewHandler(revSvc)
 
 	router.Route("/{user-id}/reviews", func(router chi.Router) {
-		router.Use(middleware.RequareAuth) 
+		router.Use(authMW.RequireAuth) 
 		
 		router.Post("/", revHndl.Create)     
 		router.Get("/", revHndl.GetUserReviews) 
@@ -48,7 +52,7 @@ func (r *Router) userRoutes() http.Handler {
 	rateHndl := ratingHandler.NewRatingHandler(rateSvc)
 
 	router.Route("/{user-id}/ratings", func(router chi.Router) {
-		router.Use(middleware.RequareAuth)
+		router.Use(authMW.RequireAuth)
 		
 		router.Post("/", rateHndl.Create)
 		router.Get("/", rateHndl.Get)

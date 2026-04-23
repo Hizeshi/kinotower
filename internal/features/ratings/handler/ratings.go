@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/Hizeshi/kinotower/internal/core/domain"
+	"github.com/Hizeshi/kinotower/internal/core/middleware"
 	"github.com/Hizeshi/kinotower/internal/features/ratings/servise"
 	"github.com/go-chi/chi/v5"
 )
@@ -20,6 +21,12 @@ func NewRatingHandler(service *servise.RatingService) *RatingHandler {
 
 func (h *RatingHandler) Create(w http.ResponseWriter, r *http.Request) {
 	userID, _ := strconv.Atoi(chi.URLParam(r, "user-id"))
+	
+	tokenUserID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok || tokenUserID != userID {
+		http.Error(w, "Forbidden: you can only access your own data", http.StatusForbidden)
+		return
+	}
 	
 	var req domain.CreateRatingRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -38,7 +45,7 @@ func (h *RatingHandler) Create(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if err == servise.ErrScoreExist {
 			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusUnauthorized) 
+			w.WriteHeader(http.StatusBadRequest) 
 			json.NewEncoder(w).Encode(map[string]string{"message": "Score exist"})
 			return
 		}
@@ -53,6 +60,13 @@ func (h *RatingHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 func (h *RatingHandler) Get(w http.ResponseWriter, r *http.Request) {
 	userID, _ := strconv.Atoi(chi.URLParam(r, "user-id"))
+
+	tokenUserID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok || tokenUserID != userID {
+		http.Error(w, "Forbidden: you can only access your own data", http.StatusForbidden)
+		return
+	}
+
 	ratings, err := h.service.GetUserRatings(r.Context(), userID)
 	if err != nil {
 		http.Error(w, "User not found", http.StatusNotFound)
@@ -65,6 +79,14 @@ func (h *RatingHandler) Get(w http.ResponseWriter, r *http.Request) {
 
 func (h *RatingHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
+	userID, _ := strconv.Atoi(chi.URLParam(r, "user-id"))
+
+	tokenUserID, ok := r.Context().Value(middleware.UserIDKey).(int)
+	if !ok || tokenUserID != userID {
+		http.Error(w, "Forbidden: you can only access your own data", http.StatusForbidden)
+		return
+	}
+
 	h.service.DeleteRating(r.Context(), id)
 	w.WriteHeader(http.StatusNoContent)
 }

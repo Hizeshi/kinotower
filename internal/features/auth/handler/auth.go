@@ -2,11 +2,14 @@ package handler
 
 import (
 	"encoding/json"
-	"net/http"
 	"log/slog"
+	"net/http"
+	"strings"
+	"time"
 
 	"github.com/Hizeshi/kinotower/internal/core/domain"
 	"github.com/Hizeshi/kinotower/internal/features/auth/servise"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type AuthHandler struct {
@@ -65,11 +68,20 @@ func (h *AuthHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *AuthHandler) SignOut(w http.ResponseWriter, r *http.Request) {
+    authHeader := r.Header.Get("Authorization")
+    tokenString := strings.TrimSpace(strings.TrimPrefix(authHeader, "Bearer"))
+
+    token, _, _ := new(jwt.Parser).ParseUnverified(tokenString, jwt.MapClaims{})
+    claims, _ := token.Claims.(jwt.MapClaims)
+    exp := time.Unix(int64(claims["exp"].(float64)), 0)
+
+    err := h.service.RevokeToken(r.Context(), tokenString, exp)
+    if err != nil {
+        http.Error(w, "Failed to sign out", http.StatusInternalServerError)
+        return
+    }
 
     w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-
-	json.NewEncoder(w).Encode(map[string]string{
-		"status": "success",
-	})
+    w.WriteHeader(http.StatusOK)
+    json.NewEncoder(w).Encode(map[string]string{"status": "success"})
 }
